@@ -1,0 +1,395 @@
+<title>23 Words Dictation</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=JetBrains+Mono:wght@500;700&display=swap">
+<style>
+/* Layout: one narrow column like a dictation sheet — a question card on top, the answer written on a ruled line beneath it. */
+:root {
+  --paper: #f5f7fb;
+  --card: #ffffff;
+  --ink: #1a2133;
+  --muted: #5a6377;
+  --line: #d6dce9;
+  --accent: #2c4bd1;
+  --accent-soft: #e5eaff;
+  --ok: #17845a;
+  --ok-soft: #dff3ea;
+  --bad: #c23b2a;
+  --bad-soft: #fbe6e2;
+  --f-display: "Bricolage Grotesque", "Avenir Next", system-ui, sans-serif;
+  --f-body: "Atkinson Hyperlegible", "PingFang TC", "Noto Sans TC", "Microsoft JhengHei", system-ui, sans-serif;
+  --f-zh: "PingFang TC", "Noto Sans TC", "Microsoft JhengHei", system-ui, sans-serif;
+  --f-mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #0f131d; --card: #171c29; --ink: #e8ebf3; --muted: #9ba4b9; --line: #2b3347;
+    --accent: #8fa3ff; --accent-soft: #232c4c; --ok: #52c993; --ok-soft: #173326; --bad: #ff8270; --bad-soft: #3a1e1a;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #0f131d; --card: #171c29; --ink: #e8ebf3; --muted: #9ba4b9; --line: #2b3347;
+  --accent: #8fa3ff; --accent-soft: #232c4c; --ok: #52c993; --ok-soft: #173326; --bad: #ff8270; --bad-soft: #3a1e1a;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body {
+  background: var(--paper); color: var(--ink);
+  font-family: var(--f-body); font-size: 16px; line-height: 1.55;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 20px 48px;
+}
+.wrap { max-width: 640px; margin: 0 auto; display: grid; gap: 18px; }
+header { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px 16px; }
+h1 { font-family: var(--f-display); font-weight: 800; font-size: 1.7rem; margin: 0; letter-spacing: -0.01em; text-wrap: balance; }
+h1 span { color: var(--accent); }
+.sub { color: var(--muted); font-size: 0.9rem; margin: 2px 0 0; }
+.tabs { display: inline-flex; background: var(--card); border: 1px solid var(--line); border-radius: 999px; padding: 3px; }
+.tabs button { border: 0; background: none; color: var(--muted); font: 600 0.9rem var(--f-zh); padding: 6px 14px; border-radius: 999px; cursor: pointer; }
+.tabs button[aria-selected="true"] { background: var(--accent); color: var(--card); }
+
+.bar { display: flex; flex-wrap: wrap; gap: 10px 14px; align-items: center; justify-content: space-between; font-size: 0.9rem; color: var(--muted); }
+.progress { flex: 1 1 160px; height: 6px; background: var(--line); border-radius: 3px; overflow: hidden; }
+.progress i { display: block; height: 100%; width: 0; background: var(--accent); transition: width .25s; }
+.count { font-variant-numeric: tabular-nums; font-family: var(--f-mono); font-size: 0.85rem; }
+.toggles { display: flex; flex-wrap: wrap; gap: 6px 14px; }
+.toggles label { display: inline-flex; gap: 6px; align-items: center; cursor: pointer; }
+
+.card { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 22px 22px 20px; display: grid; gap: 14px; }
+.meta { display: flex; gap: 8px; align-items: center; font-size: 0.8rem; color: var(--muted); }
+.chip { font-family: var(--f-mono); font-size: 0.78rem; background: var(--accent-soft); color: var(--accent); padding: 2px 8px; border-radius: 6px; }
+.zh { font-family: var(--f-body); font-size: 1.45rem; font-weight: 700; line-height: 1.4; margin: 0; text-wrap: pretty; }
+.def { margin: 0; color: var(--muted); font-size: 0.98rem; }
+.def b { color: var(--ink); font-weight: 700; font-size: 0.72rem; letter-spacing: 0.08em; text-transform: uppercase; margin-right: 6px; }
+
+.hintrow { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.blanks { font-family: var(--f-mono); font-size: 1.05rem; letter-spacing: 0.18em; color: var(--accent); overflow-wrap: anywhere; }
+
+.answer { display: grid; gap: 10px; }
+.answer input {
+  width: 100%; font: 700 1.6rem var(--f-mono); color: var(--ink);
+  background: transparent; border: 0; border-bottom: 2px solid var(--line);
+  padding: 6px 2px; outline: none; border-radius: 0;
+}
+.answer input:focus { border-bottom-color: var(--accent); }
+.answer input.ok { border-bottom-color: var(--ok); color: var(--ok); }
+.answer input.bad { border-bottom-color: var(--bad); }
+.actions { display: flex; flex-wrap: wrap; gap: 8px; }
+button.btn { font: 700 0.95rem var(--f-zh); border-radius: 10px; padding: 10px 16px; cursor: pointer; border: 1px solid var(--line); background: var(--card); color: var(--ink); }
+button.btn.primary { background: var(--accent); border-color: var(--accent); color: var(--card); }
+button.btn.small { padding: 5px 10px; font-size: 0.82rem; border-radius: 8px; }
+button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+button.btn:disabled { opacity: .45; cursor: default; }
+
+.fb { border-radius: 10px; padding: 12px 14px; display: grid; gap: 4px; }
+.fb.ok { background: var(--ok-soft); color: var(--ok); }
+.fb.bad { background: var(--bad-soft); color: var(--bad); }
+.fb .big { font: 700 1.25rem var(--f-mono); color: var(--ink); overflow-wrap: anywhere; }
+.fb .line { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.fb small { color: var(--ink); opacity: .8; }
+.say { display: inline-flex; align-items: center; gap: 5px; }
+.say svg { width: 15px; height: 15px; }
+
+.done { text-align: left; }
+.score { font: 800 3rem var(--f-display); margin: 0; font-variant-numeric: tabular-nums; }
+.score span { font-size: 1.2rem; color: var(--muted); font-weight: 600; }
+.wronglist { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.wronglist li { display: flex; flex-wrap: wrap; gap: 4px 12px; justify-content: space-between; border-bottom: 1px dashed var(--line); padding: 6px 0; }
+.wronglist .w { font-family: var(--f-mono); font-weight: 700; }
+
+.tablewrap { overflow-x: auto; background: var(--card); border: 1px solid var(--line); border-radius: 14px; }
+table { width: 100%; border-collapse: collapse; font-size: 0.95rem; }
+th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+tr:last-child td { border-bottom: 0; }
+th { font-size: 0.75rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); font-weight: 700; }
+td.n { color: var(--muted); font-variant-numeric: tabular-nums; width: 2.5em; }
+td.zhc { font-family: var(--f-zh); font-weight: 700; }
+td.zhc small { display: block; font-family: var(--f-body); font-weight: 400; color: var(--muted); font-size: 0.82rem; margin-top: 2px; }
+td.word { font-family: var(--f-mono); font-weight: 700; white-space: nowrap; }
+.cover td.word span { background: var(--line); color: transparent; border-radius: 4px; cursor: pointer; user-select: none; }
+.cover td.word span.shown { background: none; color: inherit; }
+.listbar { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 8px; color: var(--muted); font-size: 0.9rem; }
+
+@media (max-width: 480px) {
+  .zh { font-size: 1.25rem; }
+  .card { padding: 18px 16px; }
+  .answer input { font-size: 1.35rem; }
+}
+@media (prefers-reduced-motion: reduce) { .progress i { transition: none; } }
+</style>
+
+<div class="wrap">
+  <header>
+    <div>
+      <h1>看解釋，<span>寫英文</span></h1>
+      <p class="sub">3E English 生字 · 23 個</p>
+    </div>
+    <div class="tabs" role="tablist">
+      <button id="tab-quiz" role="tab" aria-selected="true">默書練習</button>
+      <button id="tab-list" role="tab" aria-selected="false">生字表</button>
+    </div>
+  </header>
+
+  <section id="quiz">
+    <div class="wrap">
+      <div class="bar">
+        <span class="count" id="count">1 / 23</span>
+        <div class="progress"><i id="prog"></i></div>
+        <span class="count" id="tally">✓ 0 · ✗ 0</span>
+      </div>
+      <div class="bar toggles">
+        <label><input type="checkbox" id="opt-en"> 顯示中文提示</label>
+        <label><input type="checkbox" id="opt-shuffle"> 隨機次序</label>
+        <label><input type="checkbox" id="opt-copy" checked> 錯了要抄一次</label>
+      </div>
+
+      <div class="card" id="qcard">
+        <div class="meta"><span class="chip" id="q-pos">adj.</span><span id="q-line">line 6</span></div>
+        <p class="zh" id="q-zh">exactly the same</p>
+        <p class="def" id="q-en" hidden><b>中文</b><span id="q-entext"></span></p>
+        <div class="hintrow">
+          <button class="btn small" id="hint-len" type="button">提示：字母數</button>
+          <button class="btn small" id="hint-first" type="button">提示：首字母</button>
+          <span class="blanks" id="blanks"></span>
+        </div>
+        <form class="answer" id="form" autocomplete="off">
+          <input id="ans" type="text" placeholder="在這裡寫英文" autocapitalize="off" autocorrect="off" spellcheck="false" aria-label="英文答案">
+          <div class="actions">
+            <button class="btn primary" id="btn-check" type="submit">對答案</button>
+            <button class="btn" id="btn-skip" type="button">不會，看答案</button>
+          </div>
+        </form>
+        <div class="fb" id="fb" hidden></div>
+      </div>
+
+      <div class="card done" id="donecard" hidden>
+        <p class="score" id="score">20 <span>/ 23 一次答對</span></p>
+        <p class="def" id="done-msg"></p>
+        <ul class="wronglist" id="wronglist"></ul>
+        <div class="actions">
+          <button class="btn primary" id="btn-redo-wrong" type="button">只練錯的</button>
+          <button class="btn" id="btn-redo-all" type="button">全部重來</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="list" hidden>
+    <div class="wrap">
+      <div class="listbar">
+        <span>先看一次，再去默書。遮住後點一下可逐個看答案。</span>
+        <label><input type="checkbox" id="opt-cover"> 遮住英文</label>
+      </div>
+      <div class="tablewrap">
+        <table id="table">
+          <thead><tr><th>#</th><th>英文解釋</th><th>英文</th><th>詞性</th></tr></thead>
+          <tbody id="tbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+</div>
+
+<script>
+const WORDS = [
+  { w: "selfsame", pos: "adj.", line: "6", zh: "完全相同的", en: "exactly the same" },
+  { w: "freckle", pos: "n.", line: "7", zh: "雀斑", en: "a small, pale brown spot on the skin, usually on the face, especially of a person with pale skin" },
+  { w: "wink", pos: "v.", line: "9", zh: "眨一隻眼；打眼色", en: "to close one eye for a short time as a way of greeting someone or showing friendliness or that you are not serious about something you have said" },
+  { w: "wriggle", pos: "v.", line: "9", zh: "扭動（身體）", en: "to twist your body, or move part of your body, with small, quick movements" },
+  { w: "giggle", pos: "v.", line: "9", zh: "咯咯地笑；傻笑", en: "to laugh repeatedly in a quiet but uncontrolled way, often at something silly" },
+  { w: "spotless", pos: "adj.", line: "16", zh: "一塵不染的；非常乾淨的", en: "extremely clean" },
+  { w: "shiver", pos: "v.", line: "22", zh: "發抖；顫抖", en: "to shake slightly because you are cold, frightened, excited, etc." },
+  { w: "swollen", pos: "adj.", line: "23", zh: "腫起的；腫脹的", en: "larger than normal, especially as a result of a disease or an injury" },
+  { w: "conjunctivitis", pos: "n.", line: "25", zh: "結膜炎（紅眼症）", en: "a painful infection of the eyes that makes them red and makes the eyelids swollen and sticky" },
+  { w: "regret", pos: "n.", line: "33", zh: "後悔；遺憾", en: "a feeling of sadness about something sad or wrong or about a mistake that you have made, and a wish that it could have been different and better" },
+  { w: "toiletries", pos: "n. plural", line: "37", zh: "盥洗用品（洗漱用品）", en: "objects and substances that you use in washing yourself and preventing the body from smelling unpleasant" },
+  { w: "glitter", pos: "v.", line: "39", zh: "閃閃發光", en: "to shine brightly with little flashes of light, like a diamond" },
+  { w: "armoured", pos: "adj.", line: "40", zh: "有裝甲的；有護甲的", en: "protected by a strong covering, or using military vehicles protected by strong covering" },
+  { w: "disinfectant", pos: "n.", line: "42", zh: "消毒劑；消毒藥水", en: "a substance that contains chemicals that kill bacteria" },
+  { w: "pore", pos: "n.", line: "47", zh: "毛孔", en: "one of the small holes in your skin that liquid, especially sweat, can pass through" },
+  { w: "seal", pos: "v.", line: "48", zh: "封住；密封", en: "to cover the surface of something with something that will protect it" },
+  { w: "laundry", pos: "n.", line: "52", zh: "要洗或已洗的衣物", en: "the dirty clothes and sheets that need to be, are being, or have been washed" },
+  { w: "to make peace with something", alts: ["make peace with something"], pos: "idiom", line: "58–59", zh: "接受、釋懷（以前令你擔心或煩惱的事）", en: "to start to accept something that was previously worrying or annoying you" },
+  { w: "well-groomed", pos: "adj.", line: "65", zh: "打扮整潔的；衣著講究的", en: "having a neat and pleasant appearance that is produced with care" },
+  { w: "unkempt", pos: "adj.", line: "66", zh: "不修邊幅的；凌亂的", en: "untidy, not cared for" },
+  { w: "immune system", pos: "n.", line: "80–81", zh: "免疫系統", en: "the cells and tissues in the body that make it able to protect itself against infection" },
+  { w: "germ", pos: "n.", line: "82", zh: "細菌；病菌", en: "a very small organism that causes disease" },
+  { w: "truce", pos: "n.", line: "85", zh: "停戰；休戰", en: "a temporary agreement to stop fighting or arguing, or a brief interruption in a disagreement" }
+];
+
+const $ = (id) => document.getElementById(id);
+const norm = (s) => s.toLowerCase().replace(/[’‘]/g, "'").replace(/[‐–—]/g, "-").replace(/\s+/g, " ").trim();
+const letters = (s) => norm(s).replace(/[^a-z]/g, "");
+const esc = (s) => s.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+
+let order = [], pos = 0, results = {}, phase = "ask", hint = { len: false, first: false };
+let pool = WORDS.map((_, i) => i);
+
+const canSpeak = "speechSynthesis" in window;
+function speak(text) {
+  try {
+    const u = new SpeechSynthesisUtterance(text.replace(/^to /, "to "));
+    u.lang = "en-GB"; u.rate = 0.85;
+    speechSynthesis.cancel(); speechSynthesis.speak(u);
+  } catch (e) {}
+}
+const speakerBtn = (w) => canSpeak
+  ? `<button class="btn small say" type="button" data-say="${esc(w)}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 5 6 9H3v6h3l5 4z" fill="currentColor"/><path d="M15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13"/></svg>聽讀音</button>`
+  : "";
+document.addEventListener("click", (e) => { const b = e.target.closest("[data-say]"); if (b) speak(b.dataset.say); });
+
+function start(indices) {
+  pool = indices.slice();
+  order = indices.slice();
+  if ($("opt-shuffle").checked) {
+    for (let i = order.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [order[i], order[j]] = [order[j], order[i]]; }
+  }
+  pos = 0; results = {};
+  $("donecard").hidden = true; $("qcard").hidden = false;
+  show();
+}
+
+function blanksFor(w, first) {
+  return [...w].map((ch, k) => {
+    if (ch === " ") return " ";
+    if (ch === "-") return "-";
+    if (first && (k === 0 || w[k - 1] === " ")) return ch;
+    return "_";
+  }).join(" ");
+}
+
+function renderHint() {
+  const item = WORDS[order[pos]];
+  $("blanks").textContent = (hint.len || hint.first) ? blanksFor(item.w, hint.first) : "";
+}
+
+function show() {
+  const item = WORDS[order[pos]];
+  phase = "ask"; hint = { len: false, first: false };
+  $("q-pos").textContent = item.pos;
+  $("q-line").textContent = "line " + item.line;
+  $("q-zh").textContent = item.en;
+  $("q-entext").textContent = item.zh;
+  $("q-en").hidden = !$("opt-en").checked;
+  $("fb").hidden = true; $("fb").innerHTML = "";
+  const a = $("ans"); a.value = ""; a.className = ""; a.disabled = false; a.placeholder = "在這裡寫英文";
+  $("btn-check").textContent = "對答案"; $("btn-skip").hidden = false;
+  $("hint-len").disabled = false; $("hint-first").disabled = false;
+  renderHint(); updateBar();
+  a.focus({ preventScroll: true });
+}
+
+function updateBar() {
+  const done = Object.keys(results).length;
+  const ok = Object.values(results).filter(Boolean).length;
+  $("count").textContent = `${Math.min(pos + 1, order.length)} / ${order.length}`;
+  $("prog").style.width = (done / order.length * 100) + "%";
+  $("tally").textContent = `✓ ${ok} · ✗ ${done - ok}`;
+}
+
+function nearNote(item, given) {
+  const g = norm(given);
+  if (!g) return "";
+  if (item.w === "armoured" && g === "armored") return "armored 是美式拼法，課堂用英式 armoured（有 u）。";
+  if (letters(g) === letters(item.w)) return "字母全對，只是空格或連字號 - 不對。";
+  return "";
+}
+
+function check(skipped) {
+  const item = WORDS[order[pos]], i = order[pos];
+  const given = $("ans").value;
+  const ok = !skipped && [item.w, ...(item.alts || [])].map(norm).includes(norm(given));
+  results[i] = ok;
+  const fb = $("fb");
+  if (ok) {
+    $("ans").className = "ok";
+    fb.className = "fb ok";
+    fb.innerHTML = `<div class="line"><span>✓ 答對</span>${speakerBtn(item.w)}</div><span class="big">${esc(item.w)}</span>`;
+    phase = "next";
+    $("btn-check").textContent = pos + 1 < order.length ? "下一題" : "看成績";
+  } else {
+    const note = nearNote(item, given);
+    const copy = $("opt-copy").checked;
+    $("ans").className = "bad";
+    fb.className = "fb bad";
+    fb.innerHTML = `<div class="line"><span>${skipped || !norm(given) ? "答案是" : "✗ 你寫：" + esc(given.trim()) + " ｜ 正確："}</span>${speakerBtn(item.w)}</div>
+      <span class="big">${esc(item.w)}</span>
+      ${note ? `<small>${note}</small>` : ""}
+      ${copy ? `<small>在上面照正確拼法打一次，才進入下一題。</small>` : ""}`;
+    if (copy) {
+      phase = "copy";
+      $("ans").value = ""; $("ans").placeholder = "照抄一次：" + item.w;
+      $("btn-check").textContent = "抄好了";
+    } else {
+      phase = "next";
+      $("btn-check").textContent = pos + 1 < order.length ? "下一題" : "看成績";
+    }
+  }
+  fb.hidden = false; $("btn-skip").hidden = true;
+  $("hint-len").disabled = true; $("hint-first").disabled = true;
+  hint = { len: true, first: true }; renderHint();
+  updateBar();
+  $("ans").focus({ preventScroll: true });
+}
+
+function next() {
+  pos++;
+  if (pos >= order.length) return finish();
+  show();
+}
+
+function finish() {
+  $("qcard").hidden = true; $("donecard").hidden = false;
+  const wrong = order.filter((i) => !results[i]);
+  const ok = order.length - wrong.length;
+  $("score").innerHTML = `${ok} <span>/ ${order.length} 一次答對</span>`;
+  $("done-msg").textContent = wrong.length ? "下面這些要再溫，按「只練錯的」再默一次：" : "全部一次答對，可以默書了！";
+  $("wronglist").innerHTML = wrong.map((i) => `<li><span class="w">${esc(WORDS[i].w)}</span><span>${esc(WORDS[i].en)}</span></li>`).join("");
+  $("btn-redo-wrong").hidden = !wrong.length;
+  $("btn-redo-wrong").onclick = () => start(wrong);
+  $("prog").style.width = "100%";
+  $("count").textContent = `${order.length} / ${order.length}`;
+}
+
+$("form").addEventListener("submit", (e) => {
+  e.preventDefault();
+  if (phase === "ask") return check(false);
+  if (phase === "next") return next();
+  if (phase === "copy") {
+    const item = WORDS[order[pos]];
+    if ([item.w, ...(item.alts || [])].map(norm).includes(norm($("ans").value))) {
+      $("ans").className = "ok"; phase = "next"; next();
+    } else {
+      $("ans").className = "bad"; $("ans").select();
+    }
+  }
+});
+$("btn-skip").addEventListener("click", () => check(true));
+$("hint-len").addEventListener("click", () => { hint.len = true; renderHint(); $("ans").focus(); });
+$("hint-first").addEventListener("click", () => { hint.len = true; hint.first = true; renderHint(); $("ans").focus(); });
+$("opt-en").addEventListener("change", () => { $("q-en").hidden = !$("opt-en").checked; });
+$("opt-shuffle").addEventListener("change", () => start(WORDS.map((_, i) => i)));
+$("btn-redo-all").addEventListener("click", () => start(WORDS.map((_, i) => i)));
+
+// word list
+$("tbody").innerHTML = WORDS.map((x, i) => `<tr><td class="n">${i + 1}</td><td class="zhc">${esc(x.en)}<small>${esc(x.zh)}</small></td><td class="word"><span>${esc(x.w)}</span></td><td>${esc(x.pos)}</td></tr>`).join("");
+$("opt-cover").addEventListener("change", (e) => {
+  $("table").classList.toggle("cover", e.target.checked);
+  document.querySelectorAll("td.word span").forEach((s) => s.classList.remove("shown"));
+});
+$("tbody").addEventListener("click", (e) => { const s = e.target.closest("td.word span"); if (s) s.classList.toggle("shown"); });
+
+function tab(which) {
+  const quiz = which === "quiz";
+  $("quiz").hidden = !quiz; $("list").hidden = quiz;
+  $("tab-quiz").setAttribute("aria-selected", quiz); $("tab-list").setAttribute("aria-selected", !quiz);
+}
+$("tab-quiz").addEventListener("click", () => tab("quiz"));
+$("tab-list").addEventListener("click", () => tab("list"));
+
+start(WORDS.map((_, i) => i));
+</script>
